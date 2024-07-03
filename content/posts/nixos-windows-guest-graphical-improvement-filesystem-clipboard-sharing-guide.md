@@ -89,4 +89,4 @@ Done! By now your VM should have:
 - Clipboard sharing
 - Filesystem sharing
 
-Can you believe it was that easy? I'll have you say... ![image](/images/easy.jpg)
+Can you believe it was that easy? I'll have you say... ![image](/public/images/easy.jpg)
