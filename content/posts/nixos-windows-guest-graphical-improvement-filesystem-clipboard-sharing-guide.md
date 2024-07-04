@@ -46,13 +46,6 @@ Create a new virtual machine in virt-manager. Follow these steps:
 - Choose storage. Configure this to your preference.
 - Make sure to have `Customize configuration before install` checked, this will let us edit the hardware before starting installation.
 
-Thanks to [libosinfo](https://libosinfo.org/), whenever we tell virt-manager which OS is being installed, it automatically determine the set of optimal virtual hardware for that specific OS, more specifically for our purpose:
-- The default memory and vCPUs allocation is sane.
-- Adds SPICE display.
-- Adds QXL video.
-- Adds SPICE agent channel `com.redhat.spice.0`.
-- Adds two USB redirectors for SPICE. How neat!
-
 # Hardware Setup
 Libvirtd don't know where `virtiofsd` is on NixOS. So we gotta find it and specify the binary path for it. You will specify the correct path later in virt-manager.
 ```
