@@ -18,7 +18,7 @@ You are going to need to download a couple things before we get to work on the f
 - [Windows File System Proxy (WinFsp)](https://winfsp.dev/). This is a Windows FUSE driver and is needed for virtiofs guest driver to work.
 
 ### NixOS Host Configuration
-[Follow the wiki](https://nixos.wiki/wiki/Virt-manager) to rebuild NixOS configuration to enable virt-manager, libvirtd, and a couple extra steps to make sure QEMU connection and network bridge is active. Additionally, for filesystem sharing you will need `virtiofsd` system package. Don't forget to reboot!
+[Follow the wiki](https://nixos.wiki/wiki/Virt-manager) to rebuild NixOS configuration to enable virt-manager, libvirtd, and a couple extra steps to make sure QEMU connection and network bridge is active. Additionally, for filesystem sharing you will need `virtiofsd` package in `environment.systemPackages`. Don't forget to reboot!
 
 # Generate `autounattend.xml`
 The Windows installation process is a PITA, even more so on virtual machine. Microsoft provides technical documentation of how Windows installer interacts with answer file [here](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/update-windows-settings-and-scripts-create-your-own-answer-file-sxs?view=windows-11). Basically, all we have to do is mount a disc image with `autounattend.xml` along with the Windows installation disc image and it will work.
@@ -27,10 +27,11 @@ So how exactly are we supposed to obtain a valid answer file? Luckily, a kind so
 - `Bypass Windows 11 requirements check (TPM, Secure Boot, etc.)`
 - `Install VirtIO Guest Tools and QEMU Guest Agent (e.g. for Proxmox VE)`
 
-It will try to look for `virtio-win.iso` mounted during the installation process and run the installer automatically. It is highly recommended to read through every options that the generator offers and highly encouraged to make the answer file to the point of completely unattended installation.
+It is highly recommended to read through every options that the generator offers and highly encouraged to make the answer file to the point of completely unattended installation. The default form is only missing this specific option to make it fully unattended:
+- `Let Windows Setup wipe, partition and format your hard drive (more specifically, disk 0) using these settings:`
 
 ### Package Disc Image
-We need to package the answer file into a disc image. We also have SPICE guest tools and WinFsp installer that we needed to pass to the guest OS anyway. Let's also package that in the same disc image along with the answer file for convenience. First, put all those three things into its own directory, remember the path. There are many ways to create disc image from file(s). Here is the method that I used:
+We need to package the answer file into a disc image. We also have SPICE guest tools and WinFsp installer that we needed to pass to the guest OS anyway. Let's also package that in the same disc image along with the answer file for convenience. First, put all those three things into its own directory, remember the path. There are many ways to create disc image from file(s). Here is the method that I used, note the last trailing slash at the end:
 ```
 $ nix-shell -p libisoburn
 $ xorriso -outdev /path/to/output/unattend.iso -map /path/to/dir-containing-answer-file-and-guest-tools/ /
@@ -55,22 +56,20 @@ $ which virtiofsd
 
 Follow through each section below in order:
 - CPUs
-    - Make sure that host CPU configuration is in `host-passthrough` mode.
-    - Manually set CPU topology of **one socket and one thread**. Only change the number of cores to match the vCPUs allocation. This is because the default topology is to emulate as many sockets as there are vCPUs allocation. However, [Windows impose an artificial limit on the number of sockets per edition](https://superuser.com/questions/959888/how-many-cpu-sockets-does-windows-10-support).
+    - Manually set CPU topology of **1 socket, at least 4 cores, and 1 thread**. This is because the default topology is to emulate as many sockets as there are vCPUs allocation. However, [Windows impose an artificial limit on the number of sockets per edition](https://superuser.com/questions/959888/how-many-cpu-sockets-does-windows-10-support).
 - Memory
     - Make sure `Enable shared memory` is enabled. This is required by virtiofs driver.
 - Add Hardware  > `Filesystem`
     - In the XML tab, add line `<binary path="/run/current-system/sw/bin/virtiofsd"/>` to inner node.
 - Add Hardware  > `Storage`
     - Device type `CDROM device`
-    - Specify the disc image location for our Windows installation, the autounattend.xml answer file, and `virtio-win.iso`.
-    - Repeat this add hardware process until all three disc image is added. The order does not matter.
+    - Specify the disc image location for our Windows installation.
+    - Repeat this add hardware process, but with the `unattend.iso` that we packaged previously (or however you named it), and `virtio-win.iso`.
 - Boot Options
     - Tick the checkbox of the CDROM device containing the Windows installation image.
-    - This should already be true by default, but make sure the main storage device that would contain the OS after install is **on top** of the CDROM device containing the Windows installation image.
 
 ### During installation
-You can now click begin installation. You will see the typical `Press any key to boot from CD or DVD...` prompt. **Do not skip this step**, enter the graphical console and press any key as instructed. Otherwise it will take you back to the EFI interactive shell and you need to reboot the VM until you can respond to the prompt in time and enter Windows setup. All that is to do now is to take a break and wait for unattended installation process.
+You can now click begin installation. You will see the typical `Press any key to boot from CD or DVD...` prompt. **Do not skip this step**, enter the graphical console and press any key as instructed. Otherwise it will take you to the EFI interactive shell and you need to reboot the VM until you can respond to the prompt in time and enter Windows setup. All that is to do now is to take a break and wait for unattended installation process.
 
 # Setup Within Guest
 Open the disc drive containing our SPICE guest tools and WinFsp installer and install it.
