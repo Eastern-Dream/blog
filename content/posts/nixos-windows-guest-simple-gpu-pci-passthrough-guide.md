@@ -1,5 +1,5 @@
 +++
-title = ' Windows 10/11 QEMU guest simple GPU PCI passthrough guide'
+title = 'Windows 10/11 QEMU guest simple GPU PCI passthrough guide'
 date = 2024-07-17T19:14:12-04:00
 draft = false
 +++
@@ -132,6 +132,8 @@ Save file and **note the path to the script**. The script needs to be run at a h
 - Switch to `Conditions` tab
     - Untick `Start the task only of the computer is on AC power`
 - Finally, click `OK` to finish task creation.
+
+It is now okay to add PCI hardware in virt-manager and install GPU drivers on the guest.
 
 Can you believe it was that easy? I'll have you say...
 
