@@ -86,3 +86,12 @@ Done! By now your VM should have:
 Can you believe it was that easy? I'll have you say...
 
 ![image](https://github.com/Eastern-Dream/blog/blob/main/static/easy.jpg?raw=true)
+
+### Little footnote about Hyper-V enlightenments
+This may not work for all setups but I needed to add the following configuration to get it working, replace `kvm_intel` with `kvm_amd` if using AMD:
+```
+boot.extraModprobeConfig = ''
+    options kvm_intel nested=1
+    options kvm ignore_msrs=1
+'';
+```
