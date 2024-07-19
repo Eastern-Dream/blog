@@ -56,7 +56,7 @@ $ which virtiofsd
 
 Follow through each section below in order:
 - CPUs
-    - Manually set CPU topology of **1 socket, at least 4 cores, and 1 thread**. This is because the default topology is to emulate as many sockets as there are vCPUs allocation. However, [Windows impose an artificial limit on the number of sockets per edition](https://superuser.com/questions/959888/how-many-cpu-sockets-does-windows-10-support).
+    - Manually set CPU topology of **1 socket, at least 4 cores, and 2 thread**. This is because the default topology is to emulate as many sockets as there are vCPUs allocation. However, [Windows impose an artificial limit on the number of sockets per edition](https://superuser.com/questions/959888/how-many-cpu-sockets-does-windows-10-support).
 - Memory
     - Make sure `Enable shared memory` is enabled. This is required by virtiofs driver.
 - Add Hardware  > `Filesystem`
