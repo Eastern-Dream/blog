@@ -11,11 +11,18 @@ This guide builds upon the an [older post about Windows guest GPU passthrough](h
 All of this requires that you already have a VFIO passthrough setup working correctly! There will also be no performance tuning here beyond what is already covered by LG docs. This guide also assumes this [specific ideal system hardware outlined in the LG docs](https://looking-glass.io/docs/B6/requirements/#recommended). Any fixes for quirks resulting from non-optimal system hardware is not considered in this guide.
 
 # NixOS Host Configuration
-You need the `kvmfr` kernel module, but the package reference changes depending on which kernel you use. I use Zen kernel so this is what it looks like:
+You need the `kvmfr` kernel module, but the package reference changes depending on which kernel you use. So you need to use the `config` attribute set and reference the kernel like so:
 ```
-boot.extraModulePackages = [ pkgs.linuxKernel.packages.linux_zen.kvmfr ];
+{ config , ... }:
+
+{
+    ...
+    boot.extraModulePackages = [ config.boot.kernelPackages.kvmfr ];
+    ...
+}
+
 ```
-Please make sure you reference the correct `kvmfr` module for your specific kernel. The default 32MB memory region is enough up to 1440p and a bit more, read the docs if your use case is different and adjust modprobe config accordingly.
+The default 32MB memory region is enough up to 1440p and a bit more, read the docs if your use case is different and adjust modprobe config accordingly.
 
 [The Looking Glass documentation mentions a permission issue with the shared memory file](https://looking-glass.io/docs/B6/install/#permissions). We can perform the same step by adding:
 ```
@@ -24,18 +31,18 @@ systemd.tmpfiles.rules = [
 ];
 ```
 
-Lastly, we need the Looking Glass client, simply add `looking-glass-client` package to either user or system package. Rebuild and reboot.
+Lastly, we need the Looking Glass client, simply add `looking-glass-client` package. Rebuild and reboot.
 
 # Guest Setup
 ### Install Looking Glass Host
 Before we make hardware changes to the guest, download the B7-rc1 Windows host binary and install it on the guest. We haven't set up LG on the virtual hardware side of things yet but you will probably lose control of the graphical console later so better to do it now.
 
-### Plug the passthrough GPU into your monitor
-You heard that right... Looking Glass host requires an existing display output to capture. If there are no display output, then Windows disable the GPU and there would be nothing to capture. The typical solution is a HDMI dummy plug or software solution like a virtual/fake display to trick the guest into thinking it has a display output.
+### Ensure you have a valid output  
+The overly simplified way to explain how LG works is that it literally copy the GPU output and passes it to Linux LG client application. Windows requires that a GPU to be connected to a display to have an output. If there are no display output, then Windows disable the GPU and there would be nothing for LG to capture the display output. The typical solution is a HDMI dummy plug or software solution like a virtual/fake display to trick Windows into thinking it has a display output.
 
-But let's be real, if you have a dual GPU system, you have a nearby monitor that has multiple inputs. Might as well make the output exists for real by plugging the GPU into the monitor. It also doubles as a fallback display in case Looking Glass fails for whatever reason by just switching your connected monitor input.
+But let's be real, if you have a dual GPU workstation, you have a nearby monitor that has multiple inputs. Might as well make the output exists for real by plugging the GPU into the monitor. It also doubles as a fallback display in case Looking Glass fails for whatever reason by just switching your connected monitor input.
 
-The only limitation to this approach is that your output is limited by the native resolution of the monitor.
+The only limitation to this approach is that your output is limited by the native resolution and refresh rate of the monitor that the passthrough GPU is plugged in.
 
 ### Virtual Hardware Setup
 Do all the following suggested setup from LG docs:
