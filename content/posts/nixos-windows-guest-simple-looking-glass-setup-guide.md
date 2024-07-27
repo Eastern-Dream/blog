@@ -11,7 +11,7 @@ This guide builds upon the an [older post about Windows guest GPU passthrough](h
 All of this requires that you already have a VFIO passthrough setup working correctly! There will also be no performance tuning here beyond what is already covered by LG docs. This guide also assumes this [specific ideal system hardware outlined in the LG docs](https://looking-glass.io/docs/B6/requirements/#recommended). Any fixes for quirks resulting from non-optimal system hardware is not considered in this guide.
 
 # NixOS Host Configuration
-You need the `kvmfr` kernel module, but the package reference changes depending on which kernel you use. So you need to use the `config` attribute set and reference the kernel like so:
+NixOS gets first-class support for Looking Glass as the `kvmfr` module and `looking-glass-client` is already in nixpkgs! The kernel module reference changes depending on which kernel you use. If you don't already know how to do it, you need to use the `config` attribute set and reference it like so:
 ```
 { config , ... }:
 
