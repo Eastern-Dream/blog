@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Fast provision of Windows 10/11 QEMU guest with filesystem and clipboard sharing through virt-manager | Deterministic Chaos</title>
+<meta name="keywords" content="">
+<meta name="description" content="Introduction This is a fast technical guide to setting up a Windows 10/11 VM on NixOS host. Non-NixOS system can still benefit from this guide, but no system configuration nor dependencies specified in here will be applicable so you will have to do-it-yourself.
+We&rsquo;ll use virt-manager to quickly provision a Windows guest with VirtIO drivers and SPICE guest tools for performance, enhanced clipboard, and filesystem integration. This guide, and other guides of the same topics as well, assumes that you have familiarity with virtualization technologies and Linux.">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/nixos-windows-guest-graphical-improvement-filesystem-clipboard-sharing-guide/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.fc220c15db4aef0318bbf30adc45d33d4d7c88deff3238b23eb255afdc472ca6.css" integrity="sha256-/CIMFdtK7wMYu/MK3EXTPU18iN7/MjiyPrJVr9xHLKY=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/nixos-windows-guest-graphical-improvement-filesystem-clipboard-sharing-guide/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Deterministic Chaos (Alt + H)">Deterministic Chaos</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Fast provision of Windows 10/11 QEMU guest with filesystem and clipboard sharing through virt-manager
+    </h1>
+    <div class="post-meta"><span title='2024-06-28 16:59:21 -0400 EDT'>June 28, 2024</span>
+
+</div>
+  </header> 
+  <div class="post-content"><h1 id="introduction">Introduction<a hidden class="anchor" aria-hidden="true" href="#introduction">#</a></h1>
+<p>This is a fast technical guide to setting up a Windows 10/11 VM on NixOS host. Non-NixOS system can still benefit from this guide, but no system configuration nor dependencies specified in here will be applicable so you will have to do-it-yourself.</p>
+<p>We&rsquo;ll use virt-manager to quickly provision a Windows guest with VirtIO drivers and SPICE guest tools for performance, enhanced clipboard, and filesystem integration. This guide, and other guides of the same topics as well, assumes that you have familiarity with virtualization technologies and Linux.</p>
+<p>One of the key tools we&rsquo;ll leverage is <code>autounattend.xml</code>, a configuration file that automates the Windows installation process. Instead of manually clicking through setup dialogs, <code>autounattend.xml</code> handles the installation parameters for you, significantly speeding up the provisioning of your VM. This automation not only saves time but also ensures a consistent setup every time.</p>
+<h3 id="general-prerequisite">General Prerequisite<a hidden class="anchor" aria-hidden="true" href="#general-prerequisite">#</a></h3>
+<p>You are going to need to download a couple things before we get to work on the fast provision:</p>
+<ul>
+<li>Windows 10/11 ISO from Microsoft. Get it however you want but <a href="https://www.microsoft.com/software-download/windows11">directly from Microsoft</a> works best.</li>
+<li><a href="https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/">Windows VirtIO Drivers</a>. Navigate to the directory of the latest version and choose the disc image <code>virtio-win.iso</code></li>
+<li><a href="https://www.spice-space.org/download.html">SPICE Windows Guest Tools</a>. The download link can be found under the Windows binaries section.</li>
+<li><a href="https://winfsp.dev/">Windows File System Proxy (WinFsp)</a>. This is a Windows FUSE driver and is needed for virtiofs guest driver to work.</li>
+</ul>
+<h3 id="nixos-host-configuration">NixOS Host Configuration<a hidden class="anchor" aria-hidden="true" href="#nixos-host-configuration">#</a></h3>
+<p><a href="https://nixos.wiki/wiki/Virt-manager">Follow the wiki</a> to rebuild NixOS configuration to enable virt-manager, libvirtd, and a couple extra steps to make sure QEMU connection and network bridge is active. Additionally, for filesystem sharing you will need <code>virtiofsd</code> system package. Don&rsquo;t forget to reboot!</p>
+<h1 id="generate-autounattendxml">Generate <code>autounattend.xml</code><a hidden class="anchor" aria-hidden="true" href="#generate-autounattendxml">#</a></h1>
+<p>The Windows installation process is a PITA, even more so on virtual machine. Microsoft provides technical documentation of how Windows installer interacts with answer file <a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/update-windows-settings-and-scripts-create-your-own-answer-file-sxs?view=windows-11">here</a>. Basically, all we have to do is mount a disc image with <code>autounattend.xml</code> along with the Windows installation disc image and it will work.</p>
+<p>So how exactly are we supposed to obtain a valid answer file? Luckily, a kind soul have made an <a href="https://schneegans.de/windows/unattend-generator/">easy-to-use generator online</a> with exhaustive addition and explanation. For the purpose of this guide, it is required to have these options enabled in the generator:</p>
+<ul>
+<li><code>Bypass Windows 11 requirements check (TPM, Secure Boot, etc.)</code></li>
+<li><code>Install VirtIO Guest Tools and QEMU Guest Agent (e.g. for Proxmox VE)</code></li>
+</ul>
+<p>It will try to look for <code>virtio-win.iso</code> mounted during the installation process and run the installer automatically. It is highly recommended to read through every options that the generator offers and highly encouraged to make the answer file to the point of completely unattended installation.</p>
+<h3 id="package-disc-image">Package Disc Image<a hidden class="anchor" aria-hidden="true" href="#package-disc-image">#</a></h3>
+<p>We need to package the answer file into a disc image. We also have SPICE guest tools and WinFsp installer that we needed to pass to the guest OS anyway. Let&rsquo;s also package that in the same disc image along with the answer file for convenience. First, put all those three things into its own directory, remember the path. There are many ways to create disc image from file(s). Here is the method that I used:</p>
+<pre tabindex="0"><code>$ nix-shell -p libisoburn
+$ xorriso -outdev /path/to/output/unattend.iso -map /path/to/dir-containing-answer-file-and-guest-tools/ /
+</code></pre><h1 id="creating-virtual-machine">Creating Virtual Machine<a hidden class="anchor" aria-hidden="true" href="#creating-virtual-machine">#</a></h1>
+<p>Before we start the VM creation. Make sure XML editing is enabled under Edit &gt; Preferences &gt; General.</p>
+<p>Create a new virtual machine in virt-manager. Follow these steps:</p>
+<ul>
+<li>Choose manual install. Because sometimes virt-manager fails to automatically detect the correct OS.</li>
+<li>Choose Windows 10/11 depend on which installation image you have.</li>
+<li>Choose memory and CPU settings. Recommended to leave it at default.</li>
+<li>Choose storage. Configure this to your preference.</li>
+<li>Make sure to have <code>Customize configuration before install</code> checked, this will let us edit the hardware before starting installation.</li>
+</ul>
+<p>Thanks to <a href="https://libosinfo.org/">libosinfo</a>, whenever we tell virt-manager which OS is being installed, it automatically determine the set of optimal virtual hardware for that specific OS, more specifically for our purpose:</p>
+<ul>
+<li>The default memory and vCPUs allocation is sane.</li>
+<li>Adds SPICE display.</li>
+<li>Adds QXL video.</li>
+<li>Adds SPICE agent channel <code>com.redhat.spice.0</code>.</li>
+<li>Adds two USB redirectors for SPICE. How neat!</li>
+</ul>
+<h1 id="hardware-setup">Hardware Setup<a hidden class="anchor" aria-hidden="true" href="#hardware-setup">#</a></h1>
+<p>Libvirtd don&rsquo;t know where <code>virtiofsd</code> is on NixOS. So we gotta find it and specify the binary path for it. You will specify the correct path later in virt-manager.</p>
+<pre tabindex="0"><code>$ which virtiofsd
+/run/current-system/sw/bin/virtiofsd
+</code></pre><p>Follow through each section below in order:</p>
+<ul>
+<li>CPUs
+<ul>
+<li>Make sure that host CPU configuration is in <code>host-passthrough</code> mode.</li>
+<li>Manually set CPU topology of <strong>one socket and one thread</strong>. Only change the number of cores to match the vCPUs allocation. This is because the default topology is to emulate as many sockets as there are vCPUs allocation. However, <a href="https://superuser.com/questions/959888/how-many-cpu-sockets-does-windows-10-support">Windows impose an artificial limit on the number of sockets per edition</a>.</li>
+</ul>
+</li>
+<li>Memory
+<ul>
+<li>Make sure <code>Enable shared memory</code> is enabled. This is required by virtiofs driver.</li>
+</ul>
+</li>
+<li>Add Hardware  &gt; <code>Filesystem</code>
+<ul>
+<li>In the XML tab, add line <code>&lt;binary path=&quot;/run/current-system/sw/bin/virtiofsd&quot;/&gt;</code> to inner node.</li>
+</ul>
+</li>
+<li>Add Hardware  &gt; <code>Storage</code>
+<ul>
+<li>Device type <code>CDROM device</code></li>
+<li>Specify the disc image location for our Windows installation, the autounattend.xml answer file, and <code>virtio-win.iso</code>.</li>
+<li>Repeat this add hardware process until all three disc image is added. The order does not matter.</li>
+</ul>
+</li>
+<li>Boot Options
+<ul>
+<li>Tick the checkbox of the CDROM device containing the Windows installation image.</li>
+<li>This should already be true by default, but make sure the main storage device that would contain the OS after install is <strong>on top</strong> of the CDROM device containing the Windows installation image.</li>
+</ul>
+</li>
+</ul>
+<h3 id="during-installation">During installation<a hidden class="anchor" aria-hidden="true" href="#during-installation">#</a></h3>
+<p>You can now click begin installation. You will see the typical <code>Press any key to boot from CD or DVD...</code> prompt. <strong>Do not skip this step</strong>, enter the graphical console and press any key as instructed. Otherwise it will take you back to the EFI interactive shell and you need to reboot the VM until you can respond to the prompt in time and enter Windows setup. All that is to do now is to take a break and wait for unattended installation process.</p>
+<h1 id="setup-within-guest">Setup Within Guest<a hidden class="anchor" aria-hidden="true" href="#setup-within-guest">#</a></h1>
+<p>Open the disc drive containing our SPICE guest tools and WinFsp installer and install it.
+Open <code>Services</code> and look for <code>VirtIO-FS Service</code>. Right click and go to its <code>Properties</code> page and change startup type to <code>Automatic</code>. While you are at it, start the service as well.</p>
+<p>Done! By now your VM should have:</p>
+<ul>
+<li>Improved SPICE graphical console performance</li>
+<li>Automatic input grabbing/release in graphical console</li>
+<li>Clipboard sharing</li>
+<li>Filesystem sharing</li>
+</ul>
+<p>Can you believe it was that easy? I&rsquo;ll have you say&hellip; <img loading="lazy" src="/public/images/easy.jpg" alt="image"  />
+</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2024 <a href="http://localhost:1313/">Deterministic Chaos</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

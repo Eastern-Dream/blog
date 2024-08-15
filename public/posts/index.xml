@@ -9,13 +9,12 @@
     <lastBuildDate>Fri, 28 Jun 2024 16:59:21 -0400</lastBuildDate>
     <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Beginner guide to Wayland NixOS host and Windows 10/11 QEMU guest with filesystem and clipboard sharing through virt-manager</title>
-      <link>http://localhost:1313/posts/nixos-windows-guest-guide/</link>
+      <title>Fast provision of Windows 10/11 QEMU guest with filesystem and clipboard sharing through virt-manager</title>
+      <link>http://localhost:1313/posts/nixos-windows-guest-graphical-improvement-filesystem-clipboard-sharing-guide/</link>
       <pubDate>Fri, 28 Jun 2024 16:59:21 -0400</pubDate>
-      <guid>http://localhost:1313/posts/nixos-windows-guest-guide/</guid>
-      <description>NixOS Host Configuration Follow the wiki to rebuild NixOS configuration to enable virt-manager, libvirtd, and a couple extra steps to make sure QEMU connection and network bridge is active. Additionally, for filesystem sharing you will need virtiofsd system package.
-From here on out, I will assume you are familiar with virt-manager and already have a basic Windows VM with networking active.
-Installing Windows Guest Tools and Drivers The simplest way is to start download from within the VM via web browser.</description>
+      <guid>http://localhost:1313/posts/nixos-windows-guest-graphical-improvement-filesystem-clipboard-sharing-guide/</guid>
+      <description>Introduction This is a fast technical guide to setting up a Windows 10/11 VM on NixOS host. Non-NixOS system can still benefit from this guide, but no system configuration nor dependencies specified in here will be applicable so you will have to do-it-yourself.
+We&amp;rsquo;ll use virt-manager to quickly provision a Windows guest with VirtIO drivers and SPICE guest tools for performance, enhanced clipboard, and filesystem integration. This guide, and other guides of the same topics as well, assumes that you have familiarity with virtualization technologies and Linux.</description>
     </item>
   </channel>
 </rss>
