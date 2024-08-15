@@ -61,6 +61,8 @@ Follow through each section below in order:
     - Make sure `Enable shared memory` is enabled. This is required by virtiofs driver.
 - Add Hardware  > `Filesystem`
     - In the XML tab, add line `<binary path="/run/current-system/sw/bin/virtiofsd"/>` to inner node.
+    - Configure source to a valid directory path.
+    - Configure target to be any arbitrary name you want.
 - Add Hardware  > `Storage`
     - Device type `CDROM device`
     - Specify the disc image location for our Windows installation.
