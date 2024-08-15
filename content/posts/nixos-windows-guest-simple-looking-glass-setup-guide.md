@@ -1,5 +1,5 @@
 +++
-title = 'NixOS Host Windows 10/11 QEMU Guest Simple Looking Glass Setup Guide'
+title = 'NixOS Host Windows Guest Simple Looking Glass Setup Guide'
 date = 2024-07-18T19:42:18-04:00
 draft = false
 +++
@@ -31,7 +31,11 @@ Lastly, we need the Looking Glass client, simply add `looking-glass-client` pack
 Before we make hardware changes to the guest, download the B7-rc1 Windows host binary and install it on the guest. We haven't set up LG on the virtual hardware side of things yet but you will probably lose control of the graphical console later so better to do it now.
 
 ### Plug the passthrough GPU into your monitor
-You heard that right... Looking Glass host requires an existing display output to capture. If there are no display output, then Windows disable the GPU and there would be nothing to capture. The typical solution is a HDMI dummy plug or software solution like a virtual/fake display to trick the guest into thinking it has a display output. But let's be real, if you have a dual GPU system, you have a nearby monitor that has multiple inputs. Might as well make the output exists for real by plugging the GPU into the monitor. It also doubles as a fallback display in case Looking Glass fails for whatever reason by just switching your connected monitor input.
+You heard that right... Looking Glass host requires an existing display output to capture. If there are no display output, then Windows disable the GPU and there would be nothing to capture. The typical solution is a HDMI dummy plug or software solution like a virtual/fake display to trick the guest into thinking it has a display output.
+
+But let's be real, if you have a dual GPU system, you have a nearby monitor that has multiple inputs. Might as well make the output exists for real by plugging the GPU into the monitor. It also doubles as a fallback display in case Looking Glass fails for whatever reason by just switching your connected monitor input.
+
+The only limitation to this approach is that your output is limited by the native resolution of the monitor.
 
 ### Virtual Hardware Setup
 Do all the following suggested setup from LG docs:
@@ -41,7 +45,7 @@ Do all the following suggested setup from LG docs:
 
 Note that for clipboard synchronization is already setup correctly if this was the same VM created using my guides.
 
-The next time you boot up the VM, you probably won't be able to see the main display because Windows would set the output from the GPU to be the main display. But that doesn't matter as running `looking-glass-client` on your host terminal should work and give you a clear, crisp display output from the guest.
+The next time you boot up the VM, you probably won't be able to see anything from the graphical console because Windows would set the output from the GPU to be the main display. But that doesn't matter as running `looking-glass-client` on your host terminal should work and give you a clear, crisp display output from the guest.
 
 Can you believe it was that easy? I'll have you say...
 
