@@ -18,6 +18,9 @@ NixOS gets first-class support for Looking Glass as the `kvmfr` module and `look
 {
     boot.extraModulePackages = [ config.boot.kernelPackages.kvmfr ];
     boot.kernelModules = [ "kvmfr" ];
+    boot.extraModprobeConfig = ''
+        options kvmfr static_size_mb=32
+    '';
 }
 ```
 The default 32MB memory region is enough up to 1440p SDR, read the docs if your use case is different and adjust modprobe config accordingly.
@@ -64,11 +67,9 @@ There are a few things you need to lookout for:
 - Note that for clipboard synchronization is already setup correctly if this was the same VM created using my guides.
 
 ### Ensure you have a valid output
-The overly simplified way to explain how LG works is that it literally copy the GPU output and passes it to Linux LG client application. Windows requires that a GPU to be connected to a display to have an output. If there are no display output, then Windows disable the GPU and there would be nothing for LG to capture the display output. The typical solution is a HDMI dummy plug or software solution like a virtual/fake display to trick Windows into thinking it has a display output.
+The overly simplified way to explain how LG works is that it literally copy the GPU output and passes it to Linux LG client application. Windows requires that a GPU to be connected to a display to have an output. If there are no display output, then Windows disable the GPU and there would be nothing for LG to capture the display output. The typical solution is a HDMI dummy plug or software solution like a virtual/fake display to trick Windows into thinking it has a display output. However, software solutions like virtual display output idddriver are ill-advised and known to cause issues.
 
-But let's be real, if you have a dual GPU workstation, you have a nearby monitor that has multiple inputs. Might as well make the output exists for real by plugging the GPU into the monitor. It also doubles as a fallback display in case Looking Glass fails for whatever reason by just switching your connected monitor input.
-
-The only limitation to this approach is that your output is limited by the native resolution and refresh rate of the monitor that the passthrough GPU is plugged in.
+But let's be real, if you have a dual GPU workstation, you have a nearby monitor that has multiple inputs. Might as well make the output exists for real by plugging the GPU into the monitor. It also doubles as a fallback display in case Looking Glass fails for whatever reason by just switching your connected monitor input. The only limitation to this approach is that your output is limited by the native resolution and refresh rate of the monitor that the passthrough GPU is plugged in.
 
 ### Install Looking Glass Host
 Download the B7-rc1 Windows host binary and install it on the guest. Here is some [reference in the docs](https://looking-glass.io/docs/B7-rc1/install_host/#installing-the-looking-glass-service). Unsure if a VM reboot is needed post-installation but it is probably a good idea anyhow. 
