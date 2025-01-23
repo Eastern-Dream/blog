@@ -32,7 +32,7 @@ It is highly recommended to read through every options that the generator offers
 
 ### Package Disc Image
 We need to package the answer file into a disc image. We also have SPICE guest tools and WinFsp installer that we needed to pass to the guest OS anyway. Let's also package that in the same disc image along with the answer file for convenience. First, put all those three things into its own directory, remember the path. There are many ways to create disc image from file(s). Here is the method that I used, note the last trailing slash at the end:
-```
+```sh
 $ nix-shell -p libisoburn
 $ xorriso -outdev /path/to/output/unattend.iso -map /path/to/dir-containing-answer-file-and-guest-tools/ /
 ```
@@ -49,7 +49,7 @@ Create a new virtual machine in virt-manager. Follow these steps:
 
 # Hardware Setup
 Libvirtd don't know where `virtiofsd` is on NixOS. So we gotta find it and specify the binary path for it. You will specify the correct path later in virt-manager.
-```
+```sh
 $ which virtiofsd
 /run/current-system/sw/bin/virtiofsd
 ```
@@ -89,7 +89,7 @@ Can you believe it was that easy? I'll have you say...
 
 ### Little footnote about Hyper-V enlightenments
 This may not work for all setups but I needed to add the following configuration to get it working, replace `kvm_intel` with `kvm_amd` if using AMD:
-```
+```nix
 boot.extraModprobeConfig = ''
     options kvm_intel nested=1
     options kvm ignore_msrs=1
